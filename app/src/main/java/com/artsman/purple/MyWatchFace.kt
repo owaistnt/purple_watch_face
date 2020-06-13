@@ -75,6 +75,9 @@ class MyWatchFace : CanvasWatchFaceService() {
 
         private lateinit var mCalendar: Calendar
 
+        private  var mGradient1 : Int=Color.BLACK
+        private  var mGradient2 : Int=Color.BLACK
+
         private var mRegisteredTimeZoneReceiver = false
         private var mMuteMode: Boolean = false
         private var mCenterX: Float = 0F
@@ -126,16 +129,19 @@ class MyWatchFace : CanvasWatchFaceService() {
         }
 
         private fun initializeBackground() {
+            mGradient1=Color.parseColor("#512DA8")
+            mGradient2=Color.parseColor("#FF4081")
+            val linearGradient= LinearGradient(100f, 0f, 100f, 800f, mGradient1, mGradient2, Shader.TileMode.CLAMP)
             mBackgroundPaint = Paint().apply {
-                color = Color.BLACK
+                shader=linearGradient
             }
             mBackgroundBitmap = BitmapFactory.decodeResource(resources, R.drawable.bg)
 
             /* Extracts colors from background image to improve watchface style. */
             Palette.from(mBackgroundBitmap).generate {
                 it?.let {
-                    mWatchHandHighlightColor = it.getVibrantColor(Color.RED)
-                    mWatchHandColor = it.getLightVibrantColor(Color.WHITE)
+                    mWatchHandHighlightColor = Color.parseColor("#FF4081")//it.getVibrantColor(Color.RED)
+                    mWatchHandColor = Color.WHITE//it.getLightVibrantColor(Color.WHITE)
                     mWatchHandShadowColor = it.getDarkMutedColor(Color.BLACK)
                     updateWatchHandStyle()
                 }
@@ -358,7 +364,8 @@ class MyWatchFace : CanvasWatchFaceService() {
             } else if (mAmbient) {
                 canvas.drawBitmap(mGrayBackgroundBitmap, 0f, 0f, mBackgroundPaint)
             } else {
-                canvas.drawBitmap(mBackgroundBitmap, 0f, 0f, mBackgroundPaint)
+                //canvas.drawBitmap(mBackgroundBitmap, 0f, 0f, mBackgroundPaint)
+                canvas.drawCircle(canvas.width/ 2f, canvas.width/ 2f, canvas.width/2f, mBackgroundPaint)
             }
         }
 
