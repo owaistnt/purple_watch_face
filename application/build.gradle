@@ -8,11 +8,12 @@ android {
 
     defaultConfig {
         applicationId "com.artsman.purple"
-        minSdkVersion 28
+        minSdkVersion 24
         targetSdkVersion 29
         versionCode 10
         versionName "1.1"
 
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -25,15 +26,12 @@ android {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
+    wearApp project(':app')
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.1.0'
-    implementation 'com.google.android.support:wearable:2.5.0'
-    implementation 'com.google.android.gms:play-services-wearable:17.0.0'
-    implementation 'androidx.percentlayout:percentlayout:1.0.0'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'androidx.core:core-ktx:1.3.0'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
-    implementation 'com.google.android.gms:play-services-base:17.1.0'
-    implementation 'androidx.palette:palette:1.0.0'
-    compileOnly 'com.google.android.wearable:wearable:2.5.0'
 }
