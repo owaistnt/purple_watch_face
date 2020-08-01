@@ -13,6 +13,7 @@ import android.support.wearable.complications.rendering.ComplicationDrawable
 import android.support.wearable.watchface.CanvasWatchFaceService
 import android.support.wearable.watchface.WatchFaceService
 import android.support.wearable.watchface.WatchFaceStyle
+import android.util.Log
 import android.util.SparseArray
 import android.view.SurfaceHolder
 import android.widget.Toast
@@ -39,6 +40,17 @@ private const val SECOND_TICK_STROKE_WIDTH = 2f
 private const val CENTER_GAP_AND_CIRCLE_RADIUS = 4f
 
 private const val SHADOW_RADIUS = 6f
+
+private const val TAG="PurpleWatchFace"
+
+private const val LEFT_COMPLICATION_ID = 121
+
+private val complicationSupportedTypes= intArrayOf(
+    ComplicationData.TYPE_RANGED_VALUE,
+    ComplicationData.TYPE_ICON,
+    ComplicationData.TYPE_SHORT_TEXT,
+    ComplicationData.TYPE_SMALL_IMAGE
+)
 
 class MyWatchFace : CanvasWatchFaceService() {
 
@@ -96,18 +108,10 @@ class MyWatchFace : CanvasWatchFaceService() {
         /* Handler to update the time once a second in interactive mode. */
         private val mUpdateTimeHandler = EngineHandler(this)
 
-        private val LEFT_COMPLICATION_ID = 0
 
-        private val complicationSupportedTypes= arrayOf(
-            ComplicationData.TYPE_RANGED_VALUE,
-            ComplicationData.TYPE_ICON,
-            ComplicationData.TYPE_SHORT_TEXT,
-            ComplicationData.TYPE_SMALL_IMAGE
-        )
+        private var mActiveComplicationDataSparseArray: SparseArray<ComplicationData>? =null
 
-        private val mActiveComplicationDataList: MutableList<ComplicationData> = mutableListOf()
-
-        private val mComplicationDrawableList: MutableList<ComplicationDrawable> = mutableListOf()
+        private var mComplicationDrawableSparseArray: SparseArray<ComplicationDrawable>? =null
 
         private val mTimeZoneReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
@@ -126,6 +130,7 @@ class MyWatchFace : CanvasWatchFaceService() {
             mCalendar = Calendar.getInstance()
 
             initializeBackground()
+            initializeComplication()
             initializeWatchFace()
         }
 
@@ -193,8 +198,12 @@ class MyWatchFace : CanvasWatchFaceService() {
         }
 
         private fun initializeComplication(){
-            var complicationDrawable : ComplicationDrawable= getDrawable
-
+            mActiveComplicationDataSparseArray = SparseArray(1)
+            mComplicationDrawableSparseArray= SparseArray(1)
+            val complicationDrawable : ComplicationDrawable= getDrawable(R.drawable.custom_complication_styles) as ComplicationDrawable
+            complicationDrawable.setContext(applicationContext)
+            mComplicationDrawableSparseArray?.put(LEFT_COMPLICATION_ID, complicationDrawable)
+            setActiveComplications(LEFT_COMPLICATION_ID)
         }
 
         override fun onDestroy() {
@@ -318,6 +327,16 @@ class MyWatchFace : CanvasWatchFaceService() {
             if (!mBurnInProtection && !mLowBitAmbient) {
                 initGrayBackgroundBitmap()
             }
+
+            //Complication
+            setComplicationBounds(width)
+        }
+
+        private fun setComplicationBounds(width: Int) {
+            val complicationPositionCalculator =
+                ComplicationPositionCalculator.getNewInstance(width)
+            val complicationDrawable = mComplicationDrawableSparseArray?.get(LEFT_COMPLICATION_ID)
+            complicationDrawable?.bounds = complicationPositionCalculator.getLeftRect()
         }
 
         private fun initGrayBackgroundBitmap() {
@@ -362,6 +381,7 @@ class MyWatchFace : CanvasWatchFaceService() {
 
             drawBackground(canvas)
             drawWatchFace(canvas)
+            drawComplication(canvas)
         }
 
         private fun drawBackground(canvas: Canvas) {
@@ -452,6 +472,10 @@ class MyWatchFace : CanvasWatchFaceService() {
             canvas.restore()
         }
 
+        private fun drawComplication(canvas: Canvas){
+            var complicationDrawable= mComplicationDrawableSparseArray?.get(LEFT_COMPLICATION_ID)
+            complicationDrawable?.setInAmbientMode(mAmbient)
+        }
         override fun onVisibilityChanged(visible: Boolean) {
             super.onVisibilityChanged(visible)
 
@@ -514,6 +538,24 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs)
             }
         }
+
+        override fun onComplicationDataUpdate(
+            watchFaceComplicationId: Int,
+            data: ComplicationData?
+        ) {
+            Log.d(TAG, "onComplicationDataUpdate() id: $watchFaceComplicationId")
+            mActiveComplicationDataSparseArray?.put(watchFaceComplicationId, data)
+            mComplicationDrawableSparseArray?.let {
+                val complicationDrawable=it[watchFaceComplicationId]
+                complicationDrawable?.setComplicationData(data)
+                invalidate()
+            }
+        }
+    }
+
+    companion object{
+        fun getComplicationId()= LEFT_COMPLICATION_ID
+        fun getComplicationSupportedType()= complicationSupportedTypes
     }
 }
 
