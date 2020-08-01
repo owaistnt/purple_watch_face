@@ -1,14 +1,13 @@
 package com.artsman.purple
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.app.PendingIntent.CanceledException
+import android.content.*
 import android.graphics.*
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
 import android.support.wearable.complications.ComplicationData
+import android.support.wearable.complications.ComplicationHelperActivity
 import android.support.wearable.complications.rendering.ComplicationDrawable
 import android.support.wearable.watchface.CanvasWatchFaceService
 import android.support.wearable.watchface.WatchFaceService
@@ -16,7 +15,6 @@ import android.support.wearable.watchface.WatchFaceStyle
 import android.util.Log
 import android.util.SparseArray
 import android.view.SurfaceHolder
-import android.widget.Toast
 import androidx.palette.graphics.Palette
 import java.lang.ref.WeakReference
 import java.util.*
@@ -41,11 +39,11 @@ private const val CENTER_GAP_AND_CIRCLE_RADIUS = 4f
 
 private const val SHADOW_RADIUS = 6f
 
-private const val TAG="PurpleWatchFace"
+private const val TAG = "PurpleWatchFace"
 
 private const val LEFT_COMPLICATION_ID = 121
 
-private val complicationSupportedTypes= intArrayOf(
+private val complicationSupportedTypes = intArrayOf(
     ComplicationData.TYPE_RANGED_VALUE,
     ComplicationData.TYPE_ICON,
     ComplicationData.TYPE_SHORT_TEXT,
@@ -75,8 +73,8 @@ class MyWatchFace : CanvasWatchFaceService() {
 
         private lateinit var mCalendar: Calendar
 
-        private  var mGradient1 : Int=Color.BLACK
-        private  var mGradient2 : Int=Color.BLACK
+        private var mGradient1: Int = Color.BLACK
+        private var mGradient2: Int = Color.BLACK
 
         private var mRegisteredTimeZoneReceiver = false
         private var mMuteMode: Boolean = false
@@ -109,9 +107,9 @@ class MyWatchFace : CanvasWatchFaceService() {
         private val mUpdateTimeHandler = EngineHandler(this)
 
 
-        private var mActiveComplicationDataSparseArray: SparseArray<ComplicationData>? =null
+        private var mActiveComplicationDataSparseArray: SparseArray<ComplicationData>? = null
 
-        private var mComplicationDrawableSparseArray: SparseArray<ComplicationDrawable>? =null
+        private var mComplicationDrawableSparseArray: SparseArray<ComplicationDrawable>? = null
 
         private val mTimeZoneReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
@@ -123,9 +121,11 @@ class MyWatchFace : CanvasWatchFaceService() {
         override fun onCreate(holder: SurfaceHolder) {
             super.onCreate(holder)
 
-            setWatchFaceStyle(WatchFaceStyle.Builder(this@MyWatchFace)
+            setWatchFaceStyle(
+                WatchFaceStyle.Builder(this@MyWatchFace)
                     .setAcceptsTapEvents(true)
-                    .build())
+                    .build()
+            )
 
             mCalendar = Calendar.getInstance()
 
@@ -135,18 +135,20 @@ class MyWatchFace : CanvasWatchFaceService() {
         }
 
         private fun initializeBackground() {
-            mGradient1=Color.parseColor("#512DA8")
-            mGradient2=Color.parseColor("#FF4081")
-            val linearGradient= LinearGradient(100f, 0f, 100f, 800f, mGradient1, mGradient2, Shader.TileMode.CLAMP)
+            mGradient1 = Color.parseColor("#512DA8")
+            mGradient2 = Color.parseColor("#FF4081")
+            val linearGradient =
+                LinearGradient(100f, 0f, 100f, 800f, mGradient1, mGradient2, Shader.TileMode.CLAMP)
             mBackgroundPaint = Paint().apply {
-                shader=linearGradient
+                shader = linearGradient
             }
             mBackgroundBitmap = BitmapFactory.decodeResource(resources, R.drawable.bg)
 
             /* Extracts colors from background image to improve watchface style. */
             Palette.from(mBackgroundBitmap).generate {
                 it?.let {
-                    mWatchHandHighlightColor = Color.parseColor("#FF4081")//it.getVibrantColor(Color.RED)
+                    mWatchHandHighlightColor =
+                        Color.parseColor("#FF4081")//it.getVibrantColor(Color.RED)
                     mWatchHandColor = Color.WHITE//it.getLightVibrantColor(Color.WHITE)
                     mWatchHandShadowColor = it.getDarkMutedColor(Color.BLACK)
                     updateWatchHandStyle()
@@ -166,7 +168,8 @@ class MyWatchFace : CanvasWatchFaceService() {
                 isAntiAlias = true
                 strokeCap = Paint.Cap.ROUND
                 setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+                    SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor
+                )
             }
 
             mMinutePaint = Paint().apply {
@@ -175,7 +178,8 @@ class MyWatchFace : CanvasWatchFaceService() {
                 isAntiAlias = true
                 strokeCap = Paint.Cap.ROUND
                 setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+                    SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor
+                )
             }
 
             mSecondPaint = Paint().apply {
@@ -184,7 +188,8 @@ class MyWatchFace : CanvasWatchFaceService() {
                 isAntiAlias = true
                 strokeCap = Paint.Cap.ROUND
                 setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+                    SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor
+                )
             }
 
             mTickAndCirclePaint = Paint().apply {
@@ -193,14 +198,16 @@ class MyWatchFace : CanvasWatchFaceService() {
                 isAntiAlias = true
                 style = Paint.Style.STROKE
                 setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+                    SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor
+                )
             }
         }
 
-        private fun initializeComplication(){
+        private fun initializeComplication() {
             mActiveComplicationDataSparseArray = SparseArray(1)
-            mComplicationDrawableSparseArray= SparseArray(1)
-            val complicationDrawable : ComplicationDrawable= getDrawable(R.drawable.custom_complication_styles) as ComplicationDrawable
+            mComplicationDrawableSparseArray = SparseArray(1)
+            val complicationDrawable: ComplicationDrawable =
+                getDrawable(R.drawable.custom_complication_styles) as ComplicationDrawable
             complicationDrawable.setContext(applicationContext)
             mComplicationDrawableSparseArray?.put(LEFT_COMPLICATION_ID, complicationDrawable)
             setActiveComplications(LEFT_COMPLICATION_ID)
@@ -214,9 +221,11 @@ class MyWatchFace : CanvasWatchFaceService() {
         override fun onPropertiesChanged(properties: Bundle) {
             super.onPropertiesChanged(properties)
             mLowBitAmbient = properties.getBoolean(
-                    WatchFaceService.PROPERTY_LOW_BIT_AMBIENT, false)
+                WatchFaceService.PROPERTY_LOW_BIT_AMBIENT, false
+            )
             mBurnInProtection = properties.getBoolean(
-                    WatchFaceService.PROPERTY_BURN_IN_PROTECTION, false)
+                WatchFaceService.PROPERTY_BURN_IN_PROTECTION, false
+            )
         }
 
         override fun onTimeTick() {
@@ -264,13 +273,17 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mTickAndCirclePaint.isAntiAlias = true
 
                 mHourPaint.setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+                    SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor
+                )
                 mMinutePaint.setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+                    SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor
+                )
                 mSecondPaint.setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+                    SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor
+                )
                 mTickAndCirclePaint.setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+                    SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor
+                )
             }
         }
 
@@ -310,9 +323,11 @@ class MyWatchFace : CanvasWatchFaceService() {
             /* Scale loaded background image (more efficient) if surface dimensions change. */
             val scale = width.toFloat() / mBackgroundBitmap.width.toFloat()
 
-            mBackgroundBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
-                    (mBackgroundBitmap.width * scale).toInt(),
-                    (mBackgroundBitmap.height * scale).toInt(), true)
+            mBackgroundBitmap = Bitmap.createScaledBitmap(
+                mBackgroundBitmap,
+                (mBackgroundBitmap.width * scale).toInt(),
+                (mBackgroundBitmap.height * scale).toInt(), true
+            )
 
             /*
              * Create a gray version of the image only if it will look nice on the device in
@@ -341,9 +356,10 @@ class MyWatchFace : CanvasWatchFaceService() {
 
         private fun initGrayBackgroundBitmap() {
             mGrayBackgroundBitmap = Bitmap.createBitmap(
-                    mBackgroundBitmap.width,
-                    mBackgroundBitmap.height,
-                    Bitmap.Config.ARGB_8888)
+                mBackgroundBitmap.width,
+                mBackgroundBitmap.height,
+                Bitmap.Config.ARGB_8888
+            )
             val canvas = Canvas(mGrayBackgroundBitmap)
             val grayPaint = Paint()
             val colorMatrix = ColorMatrix()
@@ -365,11 +381,13 @@ class MyWatchFace : CanvasWatchFaceService() {
                 WatchFaceService.TAP_TYPE_TOUCH_CANCEL -> {
                     // The user has started a different gesture or otherwise cancelled the tap.
                 }
-                WatchFaceService.TAP_TYPE_TAP ->
-                    // The user has completed the tap gesture.
-                    // TODO: Add code to handle the tap gesture.
-                    Toast.makeText(applicationContext, R.string.message, Toast.LENGTH_SHORT)
-                            .show()
+                WatchFaceService.TAP_TYPE_TAP -> {
+                    val complicationId = getTappedComplicationId(x, y)
+                    if (complicationId == -1) {
+                        return
+                    }
+                    onComplicationTap(complicationId)
+                }
             }
             invalidate()
         }
@@ -391,7 +409,12 @@ class MyWatchFace : CanvasWatchFaceService() {
                 canvas.drawBitmap(mGrayBackgroundBitmap, 0f, 0f, mBackgroundPaint)
             } else {
                 //canvas.drawBitmap(mBackgroundBitmap, 0f, 0f, mBackgroundPaint)
-                canvas.drawCircle(canvas.width/ 2f, canvas.width/ 2f, canvas.width/2f, mBackgroundPaint)
+                canvas.drawCircle(
+                    canvas.width / 2f,
+                    canvas.width / 2f,
+                    canvas.width / 2f,
+                    mBackgroundPaint
+                )
             }
         }
 
@@ -410,8 +433,10 @@ class MyWatchFace : CanvasWatchFaceService() {
                 val innerY = (-Math.cos(tickRot.toDouble())).toFloat() * innerTickRadius
                 val outerX = Math.sin(tickRot.toDouble()).toFloat() * outerTickRadius
                 val outerY = (-Math.cos(tickRot.toDouble())).toFloat() * outerTickRadius
-                canvas.drawLine(mCenterX + innerX, mCenterY + innerY,
-                        mCenterX + outerX, mCenterY + outerY, mTickAndCirclePaint)
+                canvas.drawLine(
+                    mCenterX + innerX, mCenterY + innerY,
+                    mCenterX + outerX, mCenterY + outerY, mTickAndCirclePaint
+                )
             }
 
             /*
@@ -419,7 +444,7 @@ class MyWatchFace : CanvasWatchFaceService() {
              * 360 / 60 = 6 and 360 / 12 = 30.
              */
             val seconds =
-                    mCalendar.get(Calendar.SECOND) + mCalendar.get(Calendar.MILLISECOND) / 1000f
+                mCalendar.get(Calendar.SECOND) + mCalendar.get(Calendar.MILLISECOND) / 1000f
             val secondsRotation = seconds * 6f
 
             val minutesRotation = mCalendar.get(Calendar.MINUTE) * 6f
@@ -434,19 +459,21 @@ class MyWatchFace : CanvasWatchFaceService() {
 
             canvas.rotate(hoursRotation, mCenterX, mCenterY)
             canvas.drawLine(
-                    mCenterX,
-                    mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS,
-                    mCenterX,
-                    mCenterY - sHourHandLength,
-                    mHourPaint)
+                mCenterX,
+                mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS,
+                mCenterX,
+                mCenterY - sHourHandLength,
+                mHourPaint
+            )
 
             canvas.rotate(minutesRotation - hoursRotation, mCenterX, mCenterY)
             canvas.drawLine(
-                    mCenterX,
-                    mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS,
-                    mCenterX,
-                    mCenterY - sMinuteHandLength,
-                    mMinutePaint)
+                mCenterX,
+                mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS,
+                mCenterX,
+                mCenterY - sMinuteHandLength,
+                mMinutePaint
+            )
 
             /*
              * Ensure the "seconds" hand is drawn only when we are in interactive mode.
@@ -455,26 +482,28 @@ class MyWatchFace : CanvasWatchFaceService() {
             if (!mAmbient) {
                 canvas.rotate(secondsRotation - minutesRotation, mCenterX, mCenterY)
                 canvas.drawLine(
-                        mCenterX,
-                        mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS,
-                        mCenterX,
-                        mCenterY - mSecondHandLength,
-                        mSecondPaint)
+                    mCenterX,
+                    mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS,
+                    mCenterX,
+                    mCenterY - mSecondHandLength,
+                    mSecondPaint
+                )
 
             }
             canvas.drawCircle(
-                    mCenterX,
-                    mCenterY,
-                    CENTER_GAP_AND_CIRCLE_RADIUS,
-                    mTickAndCirclePaint)
+                mCenterX,
+                mCenterY,
+                CENTER_GAP_AND_CIRCLE_RADIUS,
+                mTickAndCirclePaint
+            )
 
             /* Restore the canvas' original orientation. */
             canvas.restore()
         }
 
-        private fun drawComplication(canvas: Canvas, millis: Long){
+        private fun drawComplication(canvas: Canvas, millis: Long) {
             mComplicationDrawableSparseArray?.let {
-                val complicationDrawable=it.get(LEFT_COMPLICATION_ID)
+                val complicationDrawable = it.get(LEFT_COMPLICATION_ID)
                 complicationDrawable?.draw(canvas, millis)
             }
         }
@@ -549,16 +578,67 @@ class MyWatchFace : CanvasWatchFaceService() {
             Log.d(TAG, "onComplicationDataUpdate() id: $watchFaceComplicationId")
             mActiveComplicationDataSparseArray?.put(watchFaceComplicationId, data)
             mComplicationDrawableSparseArray?.let {
-                val complicationDrawable=it[watchFaceComplicationId]
+                val complicationDrawable = it[watchFaceComplicationId]
                 complicationDrawable?.setComplicationData(data)
                 invalidate()
             }
         }
+
+        private fun getTappedComplicationId(x: Int, y: Int): Int {
+            val complicationId: Int = LEFT_COMPLICATION_ID
+            val complicationData: ComplicationData?
+            var complicationDrawable: ComplicationDrawable
+            val currentTimeMillis = System.currentTimeMillis()
+            complicationData = mActiveComplicationDataSparseArray?.get(complicationId)
+
+            if (complicationData != null
+                && complicationData.isActive(currentTimeMillis)
+                && complicationData.type != ComplicationData.TYPE_NOT_CONFIGURED
+                && complicationData.type != ComplicationData.TYPE_EMPTY
+            ) {
+                mComplicationDrawableSparseArray?.get(complicationId)?.let {
+                    complicationDrawable = it
+                    val complicationBoundingRect = complicationDrawable.bounds
+                    if (complicationBoundingRect.width() > 0 && complicationBoundingRect.contains(x, y)) {
+                        return complicationId
+                    } else {
+                        Log.e(TAG, "Not a recognized complication id.")
+                    }
+                }
+            }
+            return -1
+        }
+
+        private fun onComplicationTap(complicationId: Int) {
+            Log.d(TAG, "onComplicationTap()")
+            mActiveComplicationDataSparseArray?.let { dataArray ->
+                dataArray.get(complicationId)?.let { data ->
+                    data.tapAction?.let {
+                        try {
+                            it.send()
+                        } catch (e: CanceledException) {
+                            Log.e(TAG, "onComplicationTap() tap action error: $e")
+                        }
+                    } ?: if (data.type == ComplicationData.TYPE_NO_PERMISSION) {
+                        val componentName = ComponentName(applicationContext, ComplicationConfigActivity::class.java)
+                        val permissionRequestIntent = ComplicationHelperActivity.createPermissionRequestHelperIntent(
+                                applicationContext,
+                                componentName
+                            )
+                        startActivity(permissionRequestIntent)
+                    } else {
+                        Log.d(TAG, "No PendingIntent for complication $complicationId.")
+                    }
+                }
+            }
+
+        }
+
     }
 
-    companion object{
-        fun getComplicationId()= LEFT_COMPLICATION_ID
-        fun getComplicationSupportedType()= complicationSupportedTypes
+    companion object {
+        fun getComplicationId() = LEFT_COMPLICATION_ID
+        fun getComplicationSupportedType() = complicationSupportedTypes
     }
 }
 
