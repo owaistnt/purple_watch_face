@@ -380,8 +380,8 @@ class MyWatchFace : CanvasWatchFaceService() {
             mCalendar.timeInMillis = now
 
             drawBackground(canvas)
+            drawComplication(canvas, now)
             drawWatchFace(canvas)
-            drawComplication(canvas)
         }
 
         private fun drawBackground(canvas: Canvas) {
@@ -472,10 +472,13 @@ class MyWatchFace : CanvasWatchFaceService() {
             canvas.restore()
         }
 
-        private fun drawComplication(canvas: Canvas){
-            var complicationDrawable= mComplicationDrawableSparseArray?.get(LEFT_COMPLICATION_ID)
-            complicationDrawable?.setInAmbientMode(mAmbient)
+        private fun drawComplication(canvas: Canvas, millis: Long){
+            mComplicationDrawableSparseArray?.let {
+                val complicationDrawable=it.get(LEFT_COMPLICATION_ID)
+                complicationDrawable?.draw(canvas, millis)
+            }
         }
+
         override fun onVisibilityChanged(visible: Boolean) {
             super.onVisibilityChanged(visible)
 
