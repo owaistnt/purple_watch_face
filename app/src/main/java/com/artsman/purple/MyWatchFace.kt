@@ -16,6 +16,7 @@ import android.util.Log
 import android.util.SparseArray
 import android.view.SurfaceHolder
 import android.view.WindowInsets
+import androidx.core.content.ContextCompat
 import androidx.palette.graphics.Palette
 import java.lang.ref.WeakReference
 import java.util.*
@@ -137,8 +138,8 @@ class MyWatchFace : CanvasWatchFaceService() {
         }
 
         private fun initializeBackground() {
-            mGradient1 = Color.parseColor("#512DA8")
-            mGradient2 = Color.parseColor("#FF4081")
+            mGradient1 = ContextCompat.getColor(applicationContext, R.color.bg_gradient_top)//Color.parseColor("#512DA8")
+            mGradient2 = ContextCompat.getColor(applicationContext, R.color.bg_gradient_bottom)//Color.parseColor("#FF4081")
             val linearGradient =
                 LinearGradient(100f, 0f, 100f, 800f, mGradient1, mGradient2, Shader.TileMode.CLAMP)
             mBackgroundPaint = Paint().apply {
@@ -149,20 +150,23 @@ class MyWatchFace : CanvasWatchFaceService() {
             /* Extracts colors from background image to improve watchface style. */
             Palette.from(mBackgroundBitmap).generate {
                 it?.let {
-                    mWatchHandHighlightColor =
-                        Color.parseColor("#FF4081")//it.getVibrantColor(Color.RED)
-                    mWatchHandColor = Color.WHITE//it.getLightVibrantColor(Color.WHITE)
-                    mWatchHandShadowColor = it.getDarkMutedColor(Color.BLACK)
+                    mWatchHandHighlightColor = applicationContext fromColor R.color.bg_gradient_bottom
+                    mWatchHandColor = applicationContext fromColor R.color.hand_color
+                    mWatchHandShadowColor = it.getDarkMutedColor(applicationContext fromColor R.color.hand_shadow_color)
                     updateWatchHandStyle()
                 }
             }
         }
 
+        private infix fun Context.fromColor(colorRes: Int): Int {
+            return ContextCompat.getColor(this, colorRes)
+        }
+
         private fun initializeWatchFace() {
             /* Set defaults for colors */
-            mWatchHandColor = Color.WHITE
-            mWatchHandHighlightColor = Color.RED
-            mWatchHandShadowColor = Color.BLACK
+            mWatchHandColor = applicationContext fromColor R.color.hand_color
+            mWatchHandHighlightColor = applicationContext fromColor  R.color.hand_color_seconds
+            mWatchHandShadowColor = applicationContext fromColor R.color.hand_shadow_color
 
             mHourPaint = Paint().apply {
                 color = mWatchHandColor
