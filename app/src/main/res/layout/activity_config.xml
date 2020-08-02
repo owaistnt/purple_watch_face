@@ -19,13 +19,13 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <View
+    <ImageView
         android:id="@+id/watch_face_background"
         android:layout_width="@dimen/settings_preview_size"
         android:layout_height="@dimen/settings_preview_size"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:background="@color/black"/>
+        android:src="@drawable/complication_config_bg"/>
 
     <View
         android:id="@+id/watch_face_highlight"
@@ -33,16 +33,16 @@
         android:layout_height="@dimen/settings_preview_size"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:background="@color/black"/>
+        android:background="@drawable/complication_config_bg"/>
 
 
     <View
         android:id="@+id/watch_face_arms_and_ticks"
-        android:layout_width="@dimen/settings_preview_size"
-        android:layout_height="@dimen/settings_preview_size"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:background="@color/black"/>
+        android:background="@drawable/complication_config_hands"/>
 
 
     <ImageView
