@@ -15,6 +15,7 @@ import android.support.wearable.watchface.WatchFaceStyle
 import android.util.Log
 import android.util.SparseArray
 import android.view.SurfaceHolder
+import android.view.WindowInsets
 import androidx.palette.graphics.Palette
 import java.lang.ref.WeakReference
 import java.util.*
@@ -71,6 +72,7 @@ class MyWatchFace : CanvasWatchFaceService() {
 
     inner class Engine : CanvasWatchFaceService.Engine() {
 
+        private var mIsRound: Boolean=false
         private lateinit var mCalendar: Calendar
 
         private var mGradient1: Int = Color.BLACK
@@ -211,6 +213,11 @@ class MyWatchFace : CanvasWatchFaceService() {
             complicationDrawable.setContext(applicationContext)
             mComplicationDrawableSparseArray?.put(LEFT_COMPLICATION_ID, complicationDrawable)
             setActiveComplications(LEFT_COMPLICATION_ID)
+        }
+
+        override fun onApplyWindowInsets(insets: WindowInsets?) {
+            super.onApplyWindowInsets(insets)
+            mIsRound=insets?.isRound ?: false
         }
 
         override fun onDestroy() {
@@ -409,12 +416,18 @@ class MyWatchFace : CanvasWatchFaceService() {
                 canvas.drawBitmap(mGrayBackgroundBitmap, 0f, 0f, mBackgroundPaint)
             } else {
                 //canvas.drawBitmap(mBackgroundBitmap, 0f, 0f, mBackgroundPaint)
+                if(mIsRound)
                 canvas.drawCircle(
                     canvas.width / 2f,
                     canvas.width / 2f,
                     canvas.width / 2f,
                     mBackgroundPaint
                 )
+                else
+                    canvas.drawRect(0f,
+                        0f, canvas.width.toFloat(),
+                        canvas.height.toFloat(),
+                        mBackgroundPaint)
             }
         }
 
