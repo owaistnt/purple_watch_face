@@ -20,6 +20,11 @@
             android:name="com.google.android.wearable.standalone"
             android:value="true" />
 
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="true" />
+
+
         <service
             android:name=".MyWatchFace"
             android:label="@string/my_analog_name"
