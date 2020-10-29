@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="bg_gradient_top">@color/purple_1</color>
-    <color name="bg_gradient_bottom">@color/pink_1</color>
+    <color name="bg_gradient_top">@color/blue_900</color>
+    <color name="bg_gradient_bottom">@color/indigo_900</color>
     <color name="hand_shadow_color">@color/black_1</color>
     <color name="hand_color">@color/white_1</color>
     <color name="hand_color_seconds">@color/red_1</color>
@@ -12,6 +12,10 @@
 <!-- Color Swatch-->
     <color name="purple_1">#512DA8</color>
     <color name="pink_1">#FF4081</color>
+    
+    <color name="indigo_900">#1a237e</color>
+    <color name="blue_900">#0d47a1</color>
+
 
     <color name="black_1">#000000</color>
     <color name="black_2">#1A000000</color>
